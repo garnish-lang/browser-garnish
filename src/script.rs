@@ -1,8 +1,10 @@
 use garnish_lang::compiler::build::build_with_data;
 use garnish_lang::compiler::lex::{lex, Lexer, LexerToken};
 use garnish_lang::compiler::parse::parse;
-use garnish_lang::simple::SimpleGarnishData;
+use garnish_lang::simple::{SimpleGarnishData, SimpleGarnishRuntime, SimpleRuntimeState};
 use wasm_bindgen::prelude::wasm_bindgen;
+use garnish_lang::{GarnishData, GarnishRuntime};
+use crate::context::BrowserContext;
 
 #[wasm_bindgen]
 struct GarnishScript {
@@ -11,6 +13,7 @@ struct GarnishScript {
     source_tokens: Vec<LexerToken>,
     data: SimpleGarnishData,
     error: Option<String>,
+    executions: Vec<SimpleGarnishData>
 }
 
 #[wasm_bindgen]
@@ -23,6 +26,7 @@ impl GarnishScript {
             source_tokens: vec![],
             data: SimpleGarnishData::new(),
             error: None,
+            executions: vec![]
         }
     }
 
@@ -63,7 +67,7 @@ impl GarnishScript {
             Ok(result) => result,
         };
 
-        self.data = SimpleGarnishData::new();
+        self.data = SimpleGarnishData::new_custom();
 
         match build_with_data(
             parse_result.get_root(),
@@ -77,6 +81,35 @@ impl GarnishScript {
             Ok(_) => {}
         }
     }
+
+    pub fn execute(&mut self) {
+        let mut context = BrowserContext::new();
+        let mut execution_data = self.data.clone();
+        match execution_data.push_value_stack(0) {
+            Err(e) => {
+                self.error = Some(e.to_string());
+                return;
+            }
+            Ok(()) => {}
+        }
+
+        let mut runtime = SimpleGarnishRuntime::new(execution_data);
+
+        loop {
+            match runtime.execute_current_instruction(Some(&mut context)) {
+                Err(e) => {
+                    self.error = Some(e.get_message().clone());
+                    return;
+                }
+                Ok(data) => match data.get_state() {
+                    SimpleRuntimeState::Running => (),
+                    SimpleRuntimeState::End => break,
+                },
+            }
+        }
+
+        self.executions.push(runtime.get_data().clone());
+    }
 }
 
 // for methods that won't be exposed to JS
@@ -88,10 +121,16 @@ impl GarnishScript {
     pub fn get_data(&self) -> &SimpleGarnishData {
         &self.data
     }
+
+    pub fn get_execution(&self, index: usize) -> Option<&SimpleGarnishData> {
+        self.executions.get(index)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use garnish_lang::GarnishData;
+    use garnish_lang::simple::{SimpleData, SimpleNumber};
     use crate::script::GarnishScript;
 
     #[test]
@@ -132,5 +171,15 @@ mod tests {
         script.compile();
 
         assert_eq!(script.get_error(), Some("Syntax Error: Unclosed grouping".to_string()));
+    }
+
+    #[test]
+    fn execute() {
+        let mut script = GarnishScript::new("test_one".to_string(), "5 + 5".to_string());
+        script.compile();
+        script.execute();
+
+        let v = script.get_execution(0).unwrap().get_current_value().unwrap();
+        assert_eq!(script.get_execution(0).unwrap().get_data().get(v).unwrap(), &SimpleData::Number(SimpleNumber::Integer(10)))
     }
 }
