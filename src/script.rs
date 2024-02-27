@@ -123,6 +123,8 @@ impl GarnishScript {
 }
 
 // for methods that won't be exposed to JS
+// allowing dead to suppress warning for wasm build
+#[allow(dead_code)]
 impl GarnishScript {
     pub fn get_source_tokens(&self) -> &Vec<LexerToken> {
         &self.source_tokens
