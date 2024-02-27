@@ -23,8 +23,16 @@ impl GarnishScript {
         self.name.clone()
     }
 
+    pub fn set_name(&mut self, name: String) {
+        self.name = name;
+    }
+
     pub fn get_text(&self) -> String {
         self.text.clone()
+    }
+
+    pub fn set_text(&mut self, text: String) {
+        self.text = text;
     }
 }
 
@@ -37,5 +45,21 @@ mod tests {
         let script = GarnishScript::new("test_one".to_string(), "5 + 5".to_string());
         assert_eq!(script.get_name(), "test_one".to_string());
         assert_eq!(script.get_text(), "5 + 5".to_string())
+    }
+
+    #[test]
+    fn set_name() {
+        let mut script = GarnishScript::new("test_one".to_string(), "5 + 5".to_string());
+        script.set_name("test_two".to_string());
+
+        assert_eq!(script.get_name(), "test_two".to_string());
+    }
+
+    #[test]
+    fn set_text() {
+        let mut script = GarnishScript::new("test_one".to_string(), "5 + 5".to_string());
+        script.set_text("10 + 10".to_string());
+
+        assert_eq!(script.get_text(), "10 + 10".to_string());
     }
 }
