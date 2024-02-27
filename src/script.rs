@@ -42,18 +42,22 @@ impl GarnishScript {
         self.text = text;
     }
 
+    pub fn get_error(&self) -> Option<String> {
+        self.error.clone()
+    }
+
     pub fn compile(&mut self) {
         self.source_tokens = match lex(&self.text) {
             Ok(tokens) => tokens,
             Err(e) => {
-                self.error = Some(e.to_string());
+                self.error = Some(e.get_message().clone());
                 return;
             }
         };
 
         let parse_result = match parse(&self.source_tokens) {
             Err(e) => {
-                self.error = Some(e.to_string());
+                self.error = Some(e.get_message().clone());
                 return;
             }
             Ok(result) => result,
@@ -120,5 +124,13 @@ mod tests {
 
         assert_eq!(script.get_source_tokens().len(), 5);
         assert_eq!(script.get_data().get_data().len(), 4);
+    }
+
+    #[test]
+    fn compile_with_error() {
+        let mut script = GarnishScript::new("test_one".to_string(), "(5 + 5".to_string());
+        script.compile();
+
+        assert_eq!(script.get_error(), Some("Syntax Error: Unclosed grouping".to_string()));
     }
 }
