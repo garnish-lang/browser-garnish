@@ -7,12 +7,52 @@ use garnish_lang::{GarnishData, GarnishRuntime};
 use garnish_lang_utilities::simple_expression_data_format;
 use wasm_bindgen::prelude::wasm_bindgen;
 use garnish_lang_utilities::data::copy_data_at_to_data;
+use crate::compile::compile_source_into_data;
 
 #[wasm_bindgen]
-struct GarnishScript {
+pub struct SourceDetails {
     name: String,
-    text: String,
+    text: String
+}
+
+#[wasm_bindgen]
+impl SourceDetails {
+    pub fn new(name: String, text: String) -> Self {
+        SourceDetails { name, text }
+    }
+
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn set_name(&mut self, name: String) {
+        self.name = name
+    }
+
+    pub fn get_text(&self) -> String {
+        self.text.clone()
+    }
+
+    pub fn set_text(&mut self, text: String) {
+        self.text = text
+    }
+}
+
+impl SourceDetails {
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn text(&self) -> &String {
+        &self.text
+    }
+}
+
+#[wasm_bindgen]
+pub struct GarnishScript {
+    source: SourceDetails,
     input: Option<String>,
+    include: Vec<SourceDetails>,
     data: SimpleGarnishData,
     error: Option<String>,
     executions: Vec<SimpleGarnishData>,
@@ -24,9 +64,9 @@ impl GarnishScript {
     #[wasm_bindgen(constructor)]
     pub fn new(name: String, text: String) -> Self {
         GarnishScript {
-            name,
-            text,
+            source: SourceDetails::new(name, text),
             input: None,
+            include: vec![],
             data: SimpleGarnishData::new(),
             error: None,
             executions: vec![],
@@ -35,19 +75,19 @@ impl GarnishScript {
     }
 
     pub fn get_name(&self) -> String {
-        self.name.clone()
+        self.source.get_name()
     }
 
     pub fn set_name(&mut self, name: String) {
-        self.name = name;
+        self.source.set_name(name);
     }
 
     pub fn get_text(&self) -> String {
-        self.text.clone()
+        self.source.get_text()
     }
 
     pub fn set_text(&mut self, text: String) {
-        self.text = text;
+        self.source.set_text(text);
     }
 
     pub fn get_input(&self) -> Option<String> {
@@ -60,6 +100,10 @@ impl GarnishScript {
 
     pub fn get_error(&self) -> Option<String> {
         self.error.clone()
+    }
+
+    pub fn include(&mut self, name: String, text: String) {
+        self.include.push(SourceDetails::new(name, text))
     }
 
     pub fn get_execution_result(&self, execution_index: usize) -> Option<String> {
@@ -84,34 +128,24 @@ impl GarnishScript {
     }
 
     pub fn compile(&mut self) {
-        let tokens = match lex(&self.text) {
-            Ok(tokens) => tokens,
-            Err(e) => {
-                self.error = Some(e.get_message().clone());
-                return;
-            }
-        };
-
-        let parse_result = match parse(&tokens) {
-            Err(e) => {
-                self.error = Some(e.get_message().clone());
-                return;
-            }
-            Ok(result) => result,
-        };
-
         self.data = SimpleGarnishData::new_custom();
 
-        match build_with_data(
-            parse_result.get_root(),
-            parse_result.get_nodes().clone(),
-            &mut self.data,
-        ) {
+        match compile_source_into_data(&self.source, &mut self.data, &mut self.context) {
             Err(e) => {
-                self.error = Some(e.to_string());
+                self.error = Some(format!("Error compiling {}: {}", self.source.name(), e));
                 return;
+            },
+            Ok(()) => ()
+        }
+
+        for source in &self.include {
+            match compile_source_into_data(source, &mut self.data, &mut self.context) {
+                Err(e) => {
+                    self.error = Some(format!("Error compiling {}: {}", self.source.name(), e));
+                    return;
+                },
+                Ok(()) => ()
             }
-            Ok(_) => {}
         }
     }
 
@@ -300,7 +334,7 @@ mod tests {
 
         assert_eq!(
             script.get_error(),
-            Some("Syntax Error: Unclosed grouping".to_string())
+            Some("Error compiling test_one: Syntax Error: Unclosed grouping".to_string())
         );
     }
 
@@ -372,6 +406,24 @@ mod tests {
         assert_eq!(
             script.get_execution(0).unwrap().get_data().get(v).unwrap(),
             &SimpleData::Number(SimpleNumber::Integer(15))
+        )
+    }
+
+    #[test]
+    fn execute_with_includes() {
+        let mut script = GarnishScript::new("test_one".to_string(), "add_5 ~ 5".to_string());
+        script.include("add_5".to_string(), "$ + 5".to_string());
+        script.compile();
+        script.execute();
+
+        let v = script
+            .get_execution(0)
+            .unwrap()
+            .get_current_value()
+            .unwrap();
+        assert_eq!(
+            script.get_execution(0).unwrap().get_data().get(v).unwrap(),
+            &SimpleData::Number(SimpleNumber::Integer(10))
         )
     }
 }
