@@ -81,13 +81,13 @@ fn compile_tokens_into_data(
         let (start, _) = expression_part
             .iter()
             .enumerate()
-            .find(|(i, token)| token.get_token_type() == TokenType::StartExpression)
+            .find(|(_, token)| token.get_token_type() == TokenType::StartExpression)
             .ok_or("Expected expression after identifier for @Def annotation")?;
         let (end, _) = expression_part
             .iter()
             .enumerate()
             .rev()
-            .find(|(i, token)| token.get_token_type() == TokenType::EndExpression)
+            .find(|(_, token)| token.get_token_type() == TokenType::EndExpression)
             .ok_or("Expected expression after identifier for @Def annotation")?;
 
         compile_tokens_into_data(&Vec::from(&expression_part[(start + 1)..end]), identifier.get_text(), data, context)?;
