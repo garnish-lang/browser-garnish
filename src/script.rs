@@ -1,6 +1,6 @@
 use crate::context::BrowserContext;
 use garnish_lang::compiler::build::build_with_data;
-use garnish_lang::compiler::lex::{lex, LexerToken};
+use garnish_lang::compiler::lex::{lex};
 use garnish_lang::compiler::parse::parse;
 use garnish_lang::simple::{SimpleGarnishData, SimpleGarnishRuntime, SimpleRuntimeState};
 use garnish_lang::{GarnishData, GarnishRuntime};
@@ -13,7 +13,6 @@ struct GarnishScript {
     name: String,
     text: String,
     input: Option<String>,
-    source_tokens: Vec<LexerToken>,
     data: SimpleGarnishData,
     error: Option<String>,
     executions: Vec<SimpleGarnishData>,
@@ -28,7 +27,6 @@ impl GarnishScript {
             name,
             text,
             input: None,
-            source_tokens: vec![],
             data: SimpleGarnishData::new(),
             error: None,
             executions: vec![],
@@ -86,7 +84,7 @@ impl GarnishScript {
     }
 
     pub fn compile(&mut self) {
-        self.source_tokens = match lex(&self.text) {
+        let tokens = match lex(&self.text) {
             Ok(tokens) => tokens,
             Err(e) => {
                 self.error = Some(e.get_message().clone());
@@ -94,7 +92,7 @@ impl GarnishScript {
             }
         };
 
-        let parse_result = match parse(&self.source_tokens) {
+        let parse_result = match parse(&tokens) {
             Err(e) => {
                 self.error = Some(e.get_message().clone());
                 return;
@@ -240,9 +238,6 @@ impl GarnishScript {
 // allowing dead to suppress warning for wasm build
 #[allow(dead_code)]
 impl GarnishScript {
-    pub fn get_source_tokens(&self) -> &Vec<LexerToken> {
-        &self.source_tokens
-    }
 
     pub fn get_data(&self) -> &SimpleGarnishData {
         &self.data
@@ -295,7 +290,6 @@ mod tests {
         let mut script = GarnishScript::new("test_one".to_string(), "5 + 5".to_string());
         script.compile();
 
-        assert_eq!(script.get_source_tokens().len(), 5);
         assert_eq!(script.get_data().get_data().len(), 4);
     }
 
