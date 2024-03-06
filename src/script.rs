@@ -426,4 +426,38 @@ mod tests {
             &SimpleData::Number(SimpleNumber::Integer(10))
         )
     }
+
+    #[test]
+    fn execute_with_def() {
+        let mut script = GarnishScript::new("test_one".to_string(), "@Def add_5 { $ + 5 }\n\nadd_5 ~ 5".to_string());
+        script.compile();
+        script.execute();
+
+        let v = script
+            .get_execution(0)
+            .unwrap()
+            .get_current_value()
+            .unwrap();
+        assert_eq!(
+            script.get_execution(0).unwrap().get_data().get(v).unwrap(),
+            &SimpleData::Number(SimpleNumber::Integer(10))
+        )
+    }
+
+    #[test]
+    fn execute_with_def_multiple_roots() {
+        let mut script = GarnishScript::new("test_one".to_string(), "5 * 10\n\n@Def add_5 { $ + 5 }\n\nadd_5 ~ $".to_string());
+        script.compile();
+        script.execute();
+
+        let v = script
+            .get_execution(0)
+            .unwrap()
+            .get_current_value()
+            .unwrap();
+        assert_eq!(
+            script.get_execution(0).unwrap().get_data().get(v).unwrap(),
+            &SimpleData::Number(SimpleNumber::Integer(55))
+        )
+    }
 }
