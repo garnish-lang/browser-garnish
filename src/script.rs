@@ -498,7 +498,7 @@ mod tests {
 
     #[test]
     fn execution_limit() {
-        let mut script = GarnishScript::new("test_one".to_string(), "$? ^~ 5 + 5".to_string());
+        let mut script = GarnishScript::new("test_one".to_string(), "$? ^~ $ + 5".to_string());
         script.compile();
         script.execute();
 
