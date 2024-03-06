@@ -1,16 +1,25 @@
 use std::collections::HashMap;
 use garnish_lang::{GarnishContext, GarnishData, RuntimeError};
-use garnish_lang::simple::{DataError, NoCustom, SimpleGarnishData};
+use garnish_lang::simple::{DataError, NoCustom, SimpleData, SimpleGarnishData, SimpleNumber, symbol_value};
 use garnish_lang_utilities::DataInfoProvider;
 
 pub struct BrowserContext {
-    symbol_to_expression: HashMap<u64, usize>
+    symbol_to_expression: HashMap<u64, usize>,
+    symbol_to_data: HashMap<u64, SimpleData>
 }
 
 impl BrowserContext {
     pub fn new() -> Self {
+        let mut symbol_to_data = HashMap::new();
+        symbol_to_data.insert(symbol_value("Math::PI"), SimpleData::Number(SimpleNumber::Float(std::f64::consts::PI)));
+        symbol_to_data.insert(symbol_value("Math::IntegerMax"), SimpleData::Number(SimpleNumber::Integer(i32::MAX)));
+        symbol_to_data.insert(symbol_value("Math::IntegerMin"), SimpleData::Number(SimpleNumber::Integer(i32::MIN)));
+        symbol_to_data.insert(symbol_value("Math::FloatMax"), SimpleData::Number(SimpleNumber::Float(f64::MAX)));
+        symbol_to_data.insert(symbol_value("Math::FloatMin"), SimpleData::Number(SimpleNumber::Float(f64::MIN)));
+
         BrowserContext {
-            symbol_to_expression: HashMap::new()
+            symbol_to_expression: HashMap::new(),
+            symbol_to_data
         }
     }
 
@@ -26,7 +35,16 @@ impl GarnishContext<SimpleGarnishData<NoCustom>> for BrowserContext {
                 data.add_expression(*v).and_then(|addr| data.push_register(addr))?;
                 Ok(true)
             },
-            None => Ok(false)
+            None => match self.symbol_to_data.get(&symbol) {
+                Some(v) => match v {
+                    SimpleData::Number(n) => {
+                        data.add_number(*n).and_then(|addr| data.push_register(addr))?;
+                        Ok(true)
+                    },
+                    _ => Ok(false)
+                }
+                None => Ok(false)
+            }
         }
     }
 }

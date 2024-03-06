@@ -460,4 +460,21 @@ mod tests {
             &SimpleData::Number(SimpleNumber::Integer(55))
         )
     }
+
+    #[test]
+    fn resolve_context_value() {
+        let mut script = GarnishScript::new("test_one".to_string(), "Math::IntegerMax".to_string());
+        script.compile();
+        script.execute();
+
+        let v = script
+            .get_execution(0)
+            .unwrap()
+            .get_current_value()
+            .unwrap();
+        assert_eq!(
+            script.get_execution(0).unwrap().get_data().get(v).unwrap(),
+            &SimpleData::Number(SimpleNumber::Integer(i32::MAX))
+        )
+    }
 }
