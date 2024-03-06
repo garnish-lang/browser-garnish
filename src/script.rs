@@ -57,6 +57,7 @@ pub struct GarnishScript {
     error: Option<String>,
     executions: Vec<SimpleGarnishData>,
     context: BrowserContext,
+    execution_limit: usize,
 }
 
 #[wasm_bindgen]
@@ -71,6 +72,7 @@ impl GarnishScript {
             error: None,
             executions: vec![],
             context: BrowserContext::new(),
+            execution_limit: 10000
         }
     }
 
@@ -182,7 +184,7 @@ impl GarnishScript {
 
         let mut runtime = SimpleGarnishRuntime::new(execution_data);
 
-        let limit = 10000;
+        let limit = self.execution_limit;
         let mut count = 0;
 
         loop {
@@ -260,7 +262,7 @@ impl GarnishScript {
 
         let mut runtime = SimpleGarnishRuntime::new(data);
 
-        let limit = 10000;
+        let limit = self.execution_limit;
         let mut count = 0;
 
         loop {
