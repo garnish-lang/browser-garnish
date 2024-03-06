@@ -182,6 +182,9 @@ impl GarnishScript {
 
         let mut runtime = SimpleGarnishRuntime::new(execution_data);
 
+        let limit = 10000;
+        let mut count = 0;
+
         loop {
             match runtime.execute_current_instruction(Some(&mut self.context)) {
                 Err(e) => {
@@ -192,6 +195,12 @@ impl GarnishScript {
                     SimpleRuntimeState::Running => (),
                     SimpleRuntimeState::End => break,
                 },
+            }
+
+            count += 1;
+            if count >= limit {
+                self.error = Some("Instruction execution limit reached. Possibly an infinite loop.".to_string());
+                break;
             }
         }
 
@@ -251,6 +260,9 @@ impl GarnishScript {
 
         let mut runtime = SimpleGarnishRuntime::new(data);
 
+        let limit = 10000;
+        let mut count = 0;
+
         loop {
             match runtime.execute_current_instruction(Some(&mut self.context)) {
                 Err(e) => {
@@ -261,6 +273,12 @@ impl GarnishScript {
                     SimpleRuntimeState::Running => (),
                     SimpleRuntimeState::End => break,
                 },
+            }
+
+            count += 1;
+            if count >= limit {
+                self.error = Some("Instruction execution limit reached. Possibly an infinite loop.".to_string());
+                break;
             }
         }
 
@@ -476,5 +494,14 @@ mod tests {
             script.get_execution(0).unwrap().get_data().get(v).unwrap(),
             &SimpleData::Number(SimpleNumber::Integer(i32::MAX))
         )
+    }
+
+    #[test]
+    fn execution_limit() {
+        let mut script = GarnishScript::new("test_one".to_string(), "$? ^~ 5 + 5".to_string());
+        script.compile();
+        script.execute();
+
+        assert_eq!(script.error, Some("Instruction execution limit reached. Possibly an infinite loop.".to_string()))
     }
 }
