@@ -6,6 +6,7 @@ But can be pulled manually to be package in a site.
 ## Requirements
 
 [Rust](https://www.rust-lang.org/) - Can be installed with [Rust Up](https://rustup.rs/). Will also install `cargo`.
+
 [Wasm Pack](https://rustwasm.github.io/wasm-pack/) - Installed with `cargo install wasm`. Other methods on their site.
 
 ## Building
