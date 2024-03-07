@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use garnish_lang::{GarnishContext, GarnishData, RuntimeError};
-use garnish_lang::simple::{DataError, NoCustom, SimpleData, SimpleGarnishData, SimpleNumber, symbol_value};
+use garnish_lang::simple::{DataError, SimpleData, SimpleGarnishData, SimpleNumber, symbol_value};
 use garnish_lang_utilities::DataInfoProvider;
 
 pub struct BrowserContext {
@@ -28,8 +28,8 @@ impl BrowserContext {
     }
 }
 
-impl GarnishContext<SimpleGarnishData<NoCustom>> for BrowserContext {
-    fn resolve(&mut self, symbol: u64, data: &mut SimpleGarnishData<NoCustom>) -> Result<bool, RuntimeError<DataError>> {
+impl GarnishContext<SimpleGarnishData> for BrowserContext {
+    fn resolve(&mut self, symbol: u64, data: &mut SimpleGarnishData) -> Result<bool, RuntimeError<DataError>> {
         match self.symbol_to_expression.get(&symbol) {
             Some(v) => {
                 data.add_expression(*v).and_then(|addr| data.push_register(addr))?;
