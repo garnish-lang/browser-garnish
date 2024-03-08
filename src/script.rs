@@ -1,18 +1,18 @@
+use crate::compile::compile_source_into_data;
 use crate::context::BrowserContext;
 use garnish_lang::compiler::build::build_with_data;
-use garnish_lang::compiler::lex::{lex};
+use garnish_lang::compiler::lex::lex;
 use garnish_lang::compiler::parse::parse;
 use garnish_lang::simple::{SimpleGarnishData, SimpleGarnishRuntime, SimpleRuntimeState};
 use garnish_lang::{GarnishData, GarnishRuntime};
+use garnish_lang_utilities::data::copy_data_at_to_data;
 use garnish_lang_utilities::simple_expression_data_format;
 use wasm_bindgen::prelude::wasm_bindgen;
-use garnish_lang_utilities::data::copy_data_at_to_data;
-use crate::compile::compile_source_into_data;
 
 #[wasm_bindgen]
 pub struct SourceDetails {
     name: String,
-    text: String
+    text: String,
 }
 
 #[wasm_bindgen]
@@ -72,7 +72,7 @@ impl GarnishScript {
             error: None,
             executions: vec![],
             context: BrowserContext::new(),
-            execution_limit: 10000
+            execution_limit: 10000,
         }
     }
 
@@ -136,8 +136,8 @@ impl GarnishScript {
             Err(e) => {
                 self.error = Some(format!("Error compiling {}: {}", self.source.name(), e));
                 return;
-            },
-            Ok(()) => ()
+            }
+            Ok(()) => (),
         }
 
         for source in &self.include {
@@ -145,8 +145,8 @@ impl GarnishScript {
                 Err(e) => {
                     self.error = Some(format!("Error compiling {}: {}", self.source.name(), e));
                     return;
-                },
-                Ok(()) => ()
+                }
+                Ok(()) => (),
             }
         }
     }
@@ -170,8 +170,8 @@ impl GarnishScript {
                         return;
                     }
                     Ok(i) => i,
-                }
-            }
+                },
+            },
         };
 
         match execution_data.push_value_stack(input_addr) {
@@ -201,12 +201,14 @@ impl GarnishScript {
 
             count += 1;
             if count >= limit {
-                self.error = Some("Instruction execution limit reached. Possibly an infinite loop.".to_string());
+                self.error = Some(
+                    "Instruction execution limit reached. Possibly an infinite loop.".to_string(),
+                );
                 break;
             }
         }
 
-        self.executions.push(runtime.get_data().clone());
+        self.executions.push(runtime.get_data_owned());
     }
 
     fn make_input(&mut self) -> Result<SimpleGarnishData, String> {
@@ -279,7 +281,9 @@ impl GarnishScript {
 
             count += 1;
             if count >= limit {
-                self.error = Some("Instruction execution limit reached. Possibly an infinite loop.".to_string());
+                self.error = Some(
+                    "Instruction execution limit reached. Possibly an infinite loop.".to_string(),
+                );
                 break;
             }
         }
@@ -292,7 +296,6 @@ impl GarnishScript {
 // allowing dead to suppress warning for wasm build
 #[allow(dead_code)]
 impl GarnishScript {
-
     pub fn get_data(&self) -> &SimpleGarnishData {
         &self.data
     }
@@ -449,7 +452,10 @@ mod tests {
 
     #[test]
     fn execute_with_def() {
-        let mut script = GarnishScript::new("test_one".to_string(), "@Def add_5 { $ + 5 }\n\nadd_5 ~ 5".to_string());
+        let mut script = GarnishScript::new(
+            "test_one".to_string(),
+            "@Def add_5 { $ + 5 }\n\nadd_5 ~ 5".to_string(),
+        );
         script.compile();
         script.execute();
 
@@ -466,7 +472,10 @@ mod tests {
 
     #[test]
     fn execute_with_def_multiple_roots() {
-        let mut script = GarnishScript::new("test_one".to_string(), "5 * 10\n\n@Def add_5 { $ + 5 }\n\nadd_5 ~ $".to_string());
+        let mut script = GarnishScript::new(
+            "test_one".to_string(),
+            "5 * 10\n\n@Def add_5 { $ + 5 }\n\nadd_5 ~ $".to_string(),
+        );
         script.compile();
         script.execute();
 
@@ -504,6 +513,9 @@ mod tests {
         script.compile();
         script.execute();
 
-        assert_eq!(script.error, Some("Instruction execution limit reached. Possibly an infinite loop.".to_string()))
+        assert_eq!(
+            script.error,
+            Some("Instruction execution limit reached. Possibly an infinite loop.".to_string())
+        )
     }
 }

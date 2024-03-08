@@ -44,26 +44,16 @@ fn compile_tokens_into_data(
         .flat_map(|block| block.tokens_owned())
         .collect();
 
-    let parse_result = match parse(&root_tokens) {
-        Err(e) => {
-            return Err(e.get_message().clone());
-        }
-        Ok(result) => result,
-    };
+    let parse_result =  parse(&root_tokens).or_else(|e| Err(e.get_message().clone()))?;
 
     let root_point = data.get_jump_table_len();
     context.add_expression_mapping(symbol_value(name), root_point);
 
-    match build_with_data(
+    build_with_data(
         parse_result.get_root(),
         parse_result.get_nodes().clone(),
         data,
-    ) {
-        Err(e) => {
-            return Err(e.get_message().clone());
-        }
-        Ok(_) => {}
-    }
+    ).or_else(|e| Err(e.get_message().clone()))?;
 
     for def in def_blocks {
         let name_part = def
