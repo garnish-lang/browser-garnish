@@ -4,7 +4,7 @@ use garnish_lang::compiler::build::build_with_data;
 use garnish_lang::compiler::lex::lex;
 use garnish_lang::compiler::parse::parse;
 use garnish_lang::simple::{SimpleGarnishData, SimpleGarnishRuntime, SimpleRuntimeState};
-use garnish_lang::{GarnishData, GarnishRuntime};
+use garnish_lang::GarnishData;
 use garnish_lang_utilities::data::copy_data_at_to_data;
 use garnish_lang_utilities::simple_expression_data_format;
 use wasm_bindgen::prelude::wasm_bindgen;
