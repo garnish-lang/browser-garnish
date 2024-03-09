@@ -97,10 +97,10 @@ impl GarnishContext<SimpleGarnishData> for BrowserContext {
 
 impl DataInfoProvider<SimpleGarnishData> for BrowserContext {
     fn get_symbol_name(&self, sym: u64, _data: &SimpleGarnishData) -> Option<String> {
-        self.symbol_to_name.get(&sym).map(|name| format!(";{}", name))
+        self.symbol_to_name.get(&sym).map(|name| format!(":{}", name))
     }
 
     fn format_symbol_data(&self, sym: u64, _data: &SimpleGarnishData) -> Option<String> {
-        self.symbol_to_name.get(&sym).map(|name| format!(";{}", name))
+        self.symbol_to_name.get(&sym).map(|name| format!(":{}", name))
     }
 }
