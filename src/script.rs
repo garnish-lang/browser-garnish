@@ -4,10 +4,11 @@ use garnish_lang::compiler::build::build_with_data;
 use garnish_lang::compiler::lex::lex;
 use garnish_lang::compiler::parse::parse;
 use garnish_lang::simple::{SimpleGarnishData, SimpleGarnishRuntime, SimpleRuntimeState};
-use garnish_lang::GarnishData;
+use garnish_lang::{GarnishData, GarnishRuntime, Instruction};
 use garnish_lang_utilities::data::copy_data_at_to_data;
 use garnish_lang_utilities::simple_expression_data_format;
 use wasm_bindgen::prelude::wasm_bindgen;
+use web_sys::console;
 
 #[wasm_bindgen]
 pub struct SourceDetails {
@@ -188,6 +189,17 @@ impl GarnishScript {
         let mut count = 0;
 
         loop {
+            runtime.get_data().get_current_instruction().map(|(instruction, _data)| match instruction {
+                Instruction::EndSideEffect => {
+                    let formatted = runtime.get_data().get_registers().last()
+                        .map(|addr| simple_expression_data_format(*addr, runtime.get_data(), &self.context, 0))
+                        .unwrap_or("[Side Effect did not result in a value".to_string());
+
+                    console::log_1(&formatted.into());
+                }
+                _ => ()
+            });
+
             match runtime.execute_current_instruction(Some(&mut self.context)) {
                 Err(e) => {
                     self.error = Some(e.get_message().clone());
