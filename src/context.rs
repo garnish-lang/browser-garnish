@@ -24,27 +24,22 @@ impl BrowserContext {
         };
 
         context.add_symbol_data(
-            symbol_value(MATH_PI_SYMBOL),
             MATH_PI_SYMBOL,
             SimpleData::Number(SimpleNumber::Float(std::f64::consts::PI)),
         );
         context.add_symbol_data(
-            symbol_value(MATH_INTEGER_MAX_SYMBOL),
             MATH_INTEGER_MAX_SYMBOL,
             SimpleData::Number(SimpleNumber::Integer(i32::MAX)),
         );
         context.add_symbol_data(
-            symbol_value(MATH_INTEGER_MIN_SYMBOL),
             MATH_INTEGER_MIN_SYMBOL,
             SimpleData::Number(SimpleNumber::Integer(i32::MIN)),
         );
         context.add_symbol_data(
-            symbol_value(MATH_FLOAT_MAX_SYMBOL),
             MATH_FLOAT_MAX_SYMBOL,
             SimpleData::Number(SimpleNumber::Float(f64::MAX)),
         );
         context.add_symbol_data(
-            symbol_value(MATH_FLOAT_MIN_SYMBOL),
             MATH_FLOAT_MIN_SYMBOL,
             SimpleData::Number(SimpleNumber::Float(f64::MIN)),
         );
@@ -52,22 +47,23 @@ impl BrowserContext {
         context
     }
 
-    pub fn add_symbol_name(&mut self, symbol: u64, name: &str) {
-        self.symbol_to_name.insert(symbol, name.to_string());
+    pub fn add_symbol_name(&mut self, name: &str) {
+        self.symbol_to_name.insert(symbol_value(name), name.to_string());
     }
 
-    pub fn add_symbol_data(&mut self, symbol: u64, name: &str, data: SimpleData) {
+    pub fn add_symbol_data(&mut self, name: &str, data: SimpleData) {
+        let symbol = symbol_value(name);
         self.symbol_to_name.insert(symbol, name.to_string());
         self.symbol_to_data.insert(symbol, data);
     }
 
     pub fn add_expression_mapping(
         &mut self,
-        symbol: u64,
-        symbol_name: &str,
+        name: &str,
         expression_index: usize,
     ) {
-        self.symbol_to_name.insert(symbol, symbol_name.to_string());
+        let symbol = symbol_value(name);
+        self.symbol_to_name.insert(symbol, name.to_string());
         self.symbol_to_expression.insert(symbol, expression_index);
     }
 }

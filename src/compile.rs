@@ -3,7 +3,7 @@ use crate::script::SourceDetails;
 use garnish_lang::compiler::build::build_with_data;
 use garnish_lang::compiler::lex::{lex, LexerToken, TokenType};
 use garnish_lang::compiler::parse::parse;
-use garnish_lang::simple::{symbol_value, SimpleGarnishData};
+use garnish_lang::simple::SimpleGarnishData;
 use garnish_lang::GarnishData;
 use garnish_lang_annotations_collector::{Collector, PartBehavior, PartParser, Sink, TokenBlock};
 
@@ -44,10 +44,10 @@ fn compile_tokens_into_data(
         .flat_map(|block| block.tokens_owned())
         .collect();
 
-    let parse_result =  parse(&root_tokens).or_else(|e| Err(e.get_message().clone()))?;
+    let parse_result = parse(&root_tokens).or_else(|e| Err(e.get_message().clone()))?;
 
     let root_point = data.get_jump_table_len();
-    context.add_expression_mapping(symbol_value(name), &name, root_point);
+    context.add_expression_mapping(&name, root_point);
 
     build_with_data(
         parse_result.get_root(),
@@ -83,8 +83,8 @@ fn compile_tokens_into_data(
         compile_tokens_into_data(&Vec::from(&expression_part[(start + 1)..end]), identifier.get_text(), data, context)?;
     }
 
-    for (key, value) in data.get_data().symbol_to_name() {
-        context.add_symbol_name(*key, value);
+    for value in data.get_data().symbol_to_name().values() {
+        context.add_symbol_name(value);
     }
 
     Ok(())
