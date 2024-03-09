@@ -539,7 +539,7 @@ mod tests {
 
         assert_eq!(
             script.get_execution_result(0).unwrap(),
-            ";my_symbol"
+            ":my_symbol"
         )
     }
 }
