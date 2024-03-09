@@ -533,7 +533,7 @@ mod tests {
 
     #[test]
     fn symbol_formats_to_name() {
-        let mut script = GarnishScript::new("test_one".to_string(), ";my_symbol".to_string());
+        let mut script = GarnishScript::new("test_one".to_string(), ":my_symbol".to_string());
         script.compile();
         script.execute();
 
