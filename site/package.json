@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cleanInstall": "rm -rf node_modules && npm install"
   },
   "dependencies": {
     "browser_garnish": "file:../pkg"

@@ -1,27 +1,69 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
-import * as browser_garnish from "browser_garnish";
+import {GarnishScript} from "browser_garnish";
 
-// browser_garnish.greet();
+let script = new GarnishScript("main", "");
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+const outputValueTemplate = document.getElementById("outputValueTemplate") as HTMLTemplateElement;
+const outputList = document.getElementById("outputList");
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+let sourceArea = document.getElementById("sourceArea");
+sourceArea.addEventListener("keydown", (e) => {
+    if (e.code === "Tab") {
+        e.preventDefault();
+        e.stopPropagation();
+        let area = e.target as HTMLTextAreaElement;
+        area.value = area.value + "  ";
+        script.set_text(area.value);
+    }
+});
+
+sourceArea.addEventListener("input", (e) => {
+    let area = e.target as HTMLTextAreaElement;
+    script.set_text(area.value);
+});
+
+let inputArea = document.getElementById("inputArea");
+inputArea.addEventListener("keydown", (e) => {
+    if (e.code === "Tab") {
+        e.preventDefault();
+        e.stopPropagation();
+        let area = e.target as HTMLTextAreaElement;
+        area.value = area.value + "  ";
+        script.set_input(area.value);
+    }
+});
+
+inputArea.addEventListener("input", (e) => {
+    let area = e.target as HTMLTextAreaElement;
+    script.set_input(area.value);
+});
+
+document.getElementById("executeButton").addEventListener("click", (e) => {
+    script.compile();
+    if (script.get_error() !== undefined) {
+        console.error(script.get_error());
+        return;
+    }
+
+    script.execute();
+    if (script.get_error() !== undefined) {
+        console.error(script.get_error());
+        return;
+    }
+
+    let result = script.get_execution_result(script.get_execution_count() - 1);
+
+    let valueElement = outputValueTemplate.content.cloneNode(true) as DocumentFragment;
+    let item = valueElement.querySelector("li");
+    item.innerText = result;
+
+    outputList.appendChild(item);
+});
+
+document.getElementById("clearButton")?.addEventListener("click", (e) => {
+    script.clear_executions();
+
+    while (outputList.lastElementChild) {
+        outputList.removeChild(outputList.lastElementChild);
+    }
+})

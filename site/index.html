@@ -1,13 +1,34 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Browser Garnish</title>
+</head>
+<body>
+<template id="outputValueTemplate">
+    <li>Output Text</li>
+</template>
+<main>
+    <nav>
+        <button id="executeButton">Execute</button>
+    </nav>
+    <div>
+        <section class="left">
+            <textarea id="sourceArea"></textarea>
+        </section>
+        <section class="right">
+            <textarea id="inputArea" placeholder="Script input..."></textarea>
+            <ol id="outputList">
+
+            </ol>
+        </section>
+    </div>
+    <nav>
+        <button id="clearButton">Clear</button>
+    </nav>
+</main>
+<script type="module" src="/src/main.ts"></script>
+</body>
 </html>

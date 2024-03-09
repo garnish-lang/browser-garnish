@@ -47,7 +47,7 @@ fn compile_tokens_into_data(
     let parse_result =  parse(&root_tokens).or_else(|e| Err(e.get_message().clone()))?;
 
     let root_point = data.get_jump_table_len();
-    context.add_expression_mapping(symbol_value(name), root_point);
+    context.add_expression_mapping(symbol_value(name), &name, root_point);
 
     build_with_data(
         parse_result.get_root(),
@@ -81,6 +81,10 @@ fn compile_tokens_into_data(
             .ok_or("Expected expression after identifier for @Def annotation")?;
 
         compile_tokens_into_data(&Vec::from(&expression_part[(start + 1)..end]), identifier.get_text(), data, context)?;
+    }
+
+    for (key, value) in data.get_data().symbol_to_name() {
+        context.add_symbol_name(*key, value);
     }
 
     Ok(())

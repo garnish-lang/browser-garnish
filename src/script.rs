@@ -518,4 +518,16 @@ mod tests {
             Some("Instruction execution limit reached. Possibly an infinite loop.".to_string())
         )
     }
+
+    #[test]
+    fn symbol_formats_to_name() {
+        let mut script = GarnishScript::new("test_one".to_string(), ";my_symbol".to_string());
+        script.compile();
+        script.execute();
+
+        assert_eq!(
+            script.get_execution_result(0).unwrap(),
+            ";my_symbol"
+        )
+    }
 }
